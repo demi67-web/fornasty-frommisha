@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Для самой прекрасной Насти ❤️ От Миши</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js для генерации нежной мелодии без внешних файлов -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Caveat:wght@600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                        display: ['Comfortaa', 'cursive'],
+                        handwriting: ['Caveat', 'cursive'],
+                    },
+                    colors: {
+                        rose: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#be123c',
+                            800: '#9f1239',
+                            900: '#881337',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0f0716;
+            color: #fff1f2;
+            overflow-x: hidden;
+        }
+
+        /* Стили для стеклянных карточек */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(253, 164, 175, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card-hover {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .glass-card-hover:hover {
+            transform: translateY(-6px) scale(1.01);
+            border-color: rgba(251, 113, 133, 0.5);
+            box-shadow: 0 15px 35px -5px rgba(244, 63, 94, 0.25);
+        }
+
+        /* 3D Переворот карточек */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+        .card-flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* Пульсация сердца */
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            15% { transform: scale(1.18); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.12); }
+            60% { transform: scale(1); }
+        }
+        .animate-heartbeat {
+            animation: heartbeat 2s infinite;
+        }
+
+        /* Плавное покачивание */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(2deg); }
+        }
+        .animate-float {
+            animation: float 5s ease-in-out infinite;
+        }
+
+        /* Конверт */
+        .envelope-wrapper {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .envelope-wrapper:hover {
+            transform: scale(1.02);
+        }
+
+        /* Кастомный скроллбар */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f0716;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #9f1239;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e11d48;
+        }
+
+        /* Свечение текста */
+        .text-glow {
+            text-shadow: 0 0 20px rgba(251, 113, 133, 0.6), 0 0 40px rgba(225, 29, 72, 0.4);
+        }
+
+        /* След из сердечек за курсором */
+        .cursor-heart {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            animation: fadeUpOut 1s ease-out forwards;
+        }
+        @keyframes fadeUpOut {
+            0% { opacity: 1; transform: translateY(0) scale(0.8); }
+            100% { opacity: 0; transform: translateY(-40px) scale(1.4); }
+        }
+    </style>
+</head>
+<body class="relative min-h-screen selection:bg-rose-500 selection:text-white">
+
+    <!-- Фоновый Canvas со звездами и парящими огоньками -->
+    <canvas id="bgCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+    <!-- Интро-экран (Открытка-вход) -->
+    <div id="introScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0c0512] px-4 transition-opacity duration-1000">
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute -top-24 -left-24 w-96 h-96 bg-rose-600/20 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="glass-card p-8 md:p-12 rounded-3xl max-w-md w-full text-center relative z-10 border border-rose-400/30">
+            <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-tr from-rose-600 to-pink-400 flex items-center justify-center shadow-lg shadow-rose-500/40 animate-heartbeat">
+                <i class="ph-fill ph-envelope-open-heart text-5xl text-white"></i>
+            </div>
+            
+            <span class="inline-block px-3 py-1 rounded-full bg-rose-500/20 border border-rose-400/30 text-rose-300 text-xs font-medium tracking-wider uppercase mb-3">
+                Секретное послание
+            </span>
+            
+            <h1 class="font-display text-2xl md:text-3xl font-bold text-white mb-2">
+                Для: <span class="text-rose-400">Насти ❤️</span>
+            </h1>
+            <p class="text-rose-200/80 text-sm mb-8">
+                Отправитель: <span class="font-semibold text-white">Миша</span>
+            </p>
+
+            <p class="text-sm text-gray-300 mb-8 leading-relaxed">
+                Я создал этот маленький уголок во вселенной специально для тебя, чтобы напомнить, как сильно ты мне дорога.
+            </p>
+
+            <button id="openGiftBtn" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white font-display font-bold text-lg shadow-lg shadow-rose-500/40 hover:shadow-rose-500/60 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group">
+                <span>Открыть подарок</span>
+                <i class="ph-bold ph-sparkle group-hover:rotate-45 transition-transform"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Плавающая панель управления (Музыка и быстрый скролл) -->
+    <nav class="fixed top-4 right-4 left-4 md:left-auto z-40 flex justify-between md:justify-end items-center gap-3 pointer-events-none">
+        <div class="glass-card px-4 py-2 rounded-full flex items-center gap-2 pointer-events-auto border border-rose-400/30">
+            <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+            <span class="font-display text-xs md:text-sm font-bold text-rose-100">Миша + Настя</span>
+        </div>
+
+        <button id="musicToggleBtn" class="glass-card px-4 py-2.5 rounded-full flex items-center gap-2 text-rose-200 hover:text-white hover:border-rose-400 transition-all pointer-events-auto shadow-lg">
+            <i id="musicIcon" class="ph-fill ph-music-notes text-lg text-rose-400"></i>
+            <span id="musicText" class="text-xs font-medium">Мелодия: Вкл</span>
+        </button>
+    </nav>
+
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <main id="mainContent" class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 space-y-28 opacity-0 transition-opacity duration-1000">
+
+        <!-- 1. ГЛАВНЫЙ ЭКРАН (HERO) -->
+        <section class="min-h-[75vh] flex flex-col items-center justify-center text-center relative">
+            <div class="animate-float mb-6 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-500/10 border border-rose-400/20 text-rose-300 text-sm">
+                <i class="ph-fill ph-shooting-star text-rose-400"></i>
+                <span>Ты — лучшее, что случалось со мной</span>
+            </div>
+
+            <h1 class="font-display text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
+                Любимая <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 via-pink-300 to-rose-400 text-glow">Настя</span>, <br/>
+                этот мир сияет благодаря тебе!
+            </h1>
+
+            <p class="max-w-2xl text-base sm:text-lg md:text-xl text-rose-100/80 font-light leading-relaxed mb-10 min-h-[3.5rem]">
+                <span id="typewriterText"></span><span class="animate-pulse text-rose-400 font-bold">|</span>
+            </p>
+
+            <!-- Интерактивная кнопка "Отправить объятие" -->
+            <div class="flex flex-col sm:flex-row items-center gap-4">
+                <button id="sendLoveBtn" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold shadow-xl shadow-rose-600/30 hover:shadow-rose-500/50 hover:scale-105 active:scale-95 transition-all flex items-center gap-3">
+                    <i class="ph-fill ph-heart text-xl animate-heartbeat"></i>
+                    <span>Нажми, чтобы получить поцелуй от Миши</span>
+                </button>
+            </div>
+            <p id="kissCounterText" class="mt-3 text-xs text-rose-300/70 font-medium">
+                Отправлено виртуальных поцелуев: <span id="kissCount" class="text-rose-400 font-bold text-sm">0</span> 💋
+            </p>
+
+            <!-- ТАЙМЕР ОТНОШЕНИЙ С 7 ФЕВРАЛЯ 2026 -->
+            <div class="mt-12 w-full max-w-2xl glass-card rounded-3xl p-6 sm:p-8 border border-rose-400/30 relative overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-rose-500/20 rounded-full blur-2xl pointer-events-none"></div>
+                
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-400/30 text-rose-300 text-xs font-semibold uppercase tracking-wider mb-3">
+                    <i class="ph-fill ph-calendar-heart text-rose-400"></i>
+                    <span>Начало нашей истории: 7 февраля 2026</span>
+                </div>
+
+                <h3 class="font-display text-lg sm:text-xl font-bold text-white mb-5">
+                    Мы счастливы вместе уже:
+                </h3>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center">
+                    <div class="bg-white/5 border border-rose-400/20 rounded-2xl p-3 sm:p-4">
+                        <span id="timerDays" class="font-display text-2xl sm:text-4xl font-bold text-rose-400 block">0</span>
+                        <span id="labelDays" class="text-xs text-rose-200/70 uppercase tracking-wider mt-1 block">Дней</span>
+                    </div>
+                    <div class="bg-white/5 border border-rose-400/20 rounded-2xl p-3 sm:p-4">
+                        <span id="timerHours" class="font-display text-2xl sm:text-4xl font-bold text-pink-300 block">00</span>
+                        <span id="labelHours" class="text-xs text-rose-200/70 uppercase tracking-wider mt-1 block">Часов</span>
+                    </div>
+                    <div class="bg-white/5 border border-rose-400/20 rounded-2xl p-3 sm:p-4">
+                        <span id="timerMinutes" class="font-display text-2xl sm:text-4xl font-bold text-rose-300 block">00</span>
+                        <span id="labelMinutes" class="text-xs text-rose-200/70 uppercase tracking-wider mt-1 block">Минут</span>
+                    </div>
+                    <div class="bg-white/5 border border-rose-400/20 rounded-2xl p-3 sm:p-4">
+                        <span id="timerSeconds" class="font-display text-2xl sm:text-4xl font-bold text-rose-400 block animate-pulse">00</span>
+                        <span id="labelSeconds" class="text-xs text-rose-200/70 uppercase tracking-wider mt-1 block">Секунд</span>
+                    </div>
+                </div>
+
+                <p class="text-xs text-rose-200/60 mt-4 font-light">
+                    ...и это только самое начало нашей бесконечной любви ❤️
+                </p>
+            </div>
+
+            <a href="#letterSection" class="mt-12 text-rose-300/60 hover:text-rose-300 transition-colors flex flex-col items-center gap-1 text-xs uppercase tracking-widest">
+                <span>Листай вниз</span>
+                <i class="ph-bold ph-caret-down text-xl animate-bounce"></i>
+            </a>
+        </section>
+
+        <!-- 2. ПИСЬМО В КОНВЕРТЕ ОТ МИШИ -->
+        <section id="letterSection" class="scroll-mt-20">
+            <div class="text-center mb-10">
+                <span class="text-rose-400 text-xs font-bold uppercase tracking-widest">Личное</span>
+                <h2 class="font-display text-3xl md:text-4xl font-bold mt-1">Письмо для Насти 💌</h2>
+                <p class="text-rose-200/70 text-sm mt-2">Нажми на печать с сердечком, чтобы развернуть письмо</p>
+            </div>
+
+            <div class="max-w-2xl mx-auto">
+                <!-- Закрытый конверт -->
+                <div id="envelopeClosed" class="glass-card rounded-3xl p-8 md:p-12 text-center cursor-pointer group hover:border-rose-400/50 transition-all relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-b from-rose-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="w-20 h-20 mx-auto rounded-full bg-rose-600 flex items-center justify-center shadow-lg shadow-rose-600/50 group-hover:scale-110 transition-transform mb-4">
+                        <i class="ph-fill ph-seal-check text-4xl text-white"></i>
+                    </div>
+                    <h3 class="font-handwriting text-3xl text-rose-200 mb-1">Кому: Моей самой нежной Настеньке</h3>
+                    <p class="font-handwriting text-xl text-rose-400">От кого: От твоего Миши</p>
+                    <span class="inline-block mt-6 text-xs uppercase tracking-wider text-rose-300 border-b border-rose-400/40 pb-1">Нажми, чтобы прочитать</span>
+                </div>
+
+                <!-- Открытое письмо -->
+                <div id="envelopeOpened" class="hidden glass-card rounded-3xl p-6 sm:p-10 md:p-12 border border-rose-300/30 bg-gradient-to-br from-[#1f0d29]/90 to-[#14081c]/90 relative shadow-2xl">
+                    <button id="closeLetterBtn" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-rose-200 transition-colors" title="Свернуть">
+                        <i class="ph-bold ph-x"></i>
+                    </button>
+
+                    <div class="font-handwriting text-2xl sm:text-3xl leading-relaxed text-rose-100 space-y-4">
+                        <p class="text-rose-400 font-bold text-3xl sm:text-4xl mb-4">Родная моя Настя,</p>
+                        <p>
+                            Иногда обычных слов в переписке или разговоре не хватает, чтобы передать всё то тепло, которое рождается в моей душе, когда я думаю о тебе или смотрю в твои глаза.
+                        </p>
+                        <p>
+                            Ты удивительная. В тебе сочетаются невероятная красота, доброта, нежность и та самая искорка, которая сводит меня с ума. Рядом с тобой даже самый обычный, пасмурный день превращается в маленький праздник.
+                        </p>
+                        <p>
+                            Спасибо тебе за твою улыбку, за твой смех, за твою поддержку и за то, что ты просто есть в моей жизни. Я хочу дарить тебе радость, оберегать тебя и делать самой счастливой девушкой на свете каждый день!
+                        </p>
+                        <div class="pt-6 flex justify-between items-end border-t border-rose-500/20 mt-6">
+                            <span class="text-xl text-rose-300/70">Навсегда твой,</span>
+                            <span class="text-4xl text-rose-400 font-bold">Миша ❤️</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. ПОЧЕМУ Я ТЕБЯ ЛЮБЛЮ (3D КАРТОЧКИ) -->
+        <section>
+            <div class="text-center mb-10">
+                <span class="text-rose-400 text-xs font-bold uppercase tracking-widest">Открой каждую</span>
+                <h2 class="font-display text-3xl md:text-4xl font-bold mt-1">За что Миша обожает Настю ✨</h2>
+                <p class="text-rose-200/70 text-sm mt-2">Нажимай на карточки, чтобы перевернуть их</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="reasonsGrid">
+                <!-- Карточки генерируются через JS -->
+            </div>
+        </section>
+
+        <!-- 4. БАНОЧКА С КОМПЛИМЕНТАМИ И ПРИЗНАНИЯМИ -->
+        <section class="glass-card rounded-3xl p-6 sm:p-10 md:p-12 relative overflow-hidden">
+            <div class="absolute -right-20 -bottom-20 w-72 h-72 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                <!-- Визуал баночки -->
+                <div class="md:col-span-5 flex flex-col items-center">
+                    <div id="jarElement" class="relative w-48 h-60 cursor-pointer group select-none" onclick="drawNoteFromJar()">
+                        <!-- Крышка банки -->
+                        <div class="w-32 h-7 bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-300 mx-auto rounded-t-lg border-b-4 border-amber-600 shadow-md relative z-20"></div>
+                        <div class="w-36 h-3 bg-rose-500 mx-auto rounded-full -mt-1 relative z-20 shadow"></div>
+                        <!-- Тело банки -->
+                        <div class="w-48 h-52 mx-auto -mt-1 rounded-3xl bg-white/10 backdrop-blur-md border-2 border-white/30 shadow-inner flex flex-col items-center justify-end p-4 relative overflow-hidden group-hover:border-rose-400/60 transition-all">
+                            <!-- Блики на стекле -->
+                            <div class="absolute top-4 left-3 w-3 h-36 bg-white/20 rounded-full blur-[1px]"></div>
+                            
+                            <!-- Светящиеся сердечки/записки внутри -->
+                            <div class="flex flex-wrap justify-center gap-1.5 mb-2 relative z-10">
+                                <span class="w-7 h-7 rounded-lg bg-rose-400/80 rotate-12 flex items-center justify-center shadow text-xs">💖</span>
+                                <span class="w-7 h-7 rounded-lg bg-pink-400/80 -rotate-12 flex items-center justify-center shadow text-xs">✨</span>
+                                <span class="w-7 h-7 rounded-lg bg-purple-400/80 rotate-6 flex items-center justify-center shadow text-xs">💌</span>
+                                <span class="w-7 h-7 rounded-lg bg-rose-500/80 -rotate-6 flex items-center justify-center shadow text-xs">🌸</span>
+                                <span class="w-7 h-7 rounded-lg bg-amber-400/80 rotate-45 flex items-center justify-center shadow text-xs">⭐</span>
+                                <span class="w-7 h-7 rounded-lg bg-red-400/80 -rotate-12 flex items-center justify-center shadow text-xs">🥰</span>
+                                <span class="w-7 h-7 rounded-lg bg-pink-300/80 rotate-12 flex items-center justify-center shadow text-xs">👑</span>
+                            </div>
+
+                            <div class="bg-rose-950/80 border border-rose-400/40 px-3 py-1.5 rounded-xl text-center z-10 mb-2 group-hover:scale-105 transition-transform">
+                                <span class="font-handwriting text-lg text-rose-200">100 причин улыбнуться</span>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="text-xs text-rose-300/70 mt-3">Нажми на баночку или кнопку</span>
+                </div>
+
+                <!-- Текст записки -->
+                <div class="md:col-span-7 text-center md:text-left">
+                    <span class="inline-block px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-semibold uppercase tracking-wider mb-3">
+                        Волшебная баночка Миши
+                    </span>
+                    <h2 class="font-display text-2xl sm:text-3xl font-bold mb-4">
+                        Когда тебе грустно или просто хочется тепла — тяни записку!
+                    </h2>
+
+                    <div id="jarNoteDisplay" class="min-h-[120px] p-6 rounded-2xl bg-rose-950/50 border border-rose-400/30 flex items-center justify-center md:justify-start mb-6 shadow-inner transition-all">
+                        <p id="jarNoteText" class="font-handwriting text-2xl sm:text-3xl text-rose-200 leading-snug">
+                            «Настя, твоя улыбка способна растопить даже самый холодный лед в моем сердце ❤️»
+                        </p>
+                    </div>
+
+                    <button onclick="drawNoteFromJar()" class="px-6 py-3.5 rounded-xl bg-white/10 hover:bg-rose-500 text-white font-medium border border-rose-400/30 hover:border-transparent transition-all flex items-center gap-2 mx-auto md:mx-0">
+                        <i class="ph-bold ph-magic-wand text-lg"></i>
+                        <span>Вытянуть новую записку для Насти</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. РОМАНТИЧЕСКИЕ КУПОНЫ ЖЕЛАНИЙ -->
+        <section>
+            <div class="text-center mb-10">
+                <span class="text-rose-400 text-xs font-bold uppercase tracking-widest">Подарки, которые можно обналичить</span>
+                <h2 class="font-display text-3xl md:text-4xl font-bold mt-1">Купоны желаний для Насти 🎟️</h2>
+                <p class="text-rose-200/70 text-sm mt-2">Выбирай любой, активируй и отправляй скриншот Мише — исполнение гарантировано!</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="couponsContainer">
+                <!-- Генерируется через JS -->
+            </div>
+        </section>
+
+        <!-- 6. ИНТЕРАКТИВНАЯ СКРЕТЧ-КАРТА (СТЕРЕТЬ ЗАЩИТНЫЙ СЛОЙ) -->
+        <section class="max-w-xl mx-auto text-center">
+            <span class="text-rose-400 text-xs font-bold uppercase tracking-widest">Интерактивный сюрприз</span>
+            <h2 class="font-display text-3xl md:text-4xl font-bold mt-1 mb-2">Секретное признание 🪙</h2>
+            <p class="text-rose-200/70 text-sm mb-6">Потри карточку пальцем или курсором мышки, чтобы стереть защитный слой!</p>
+
+            <div class="glass-card p-4 rounded-3xl relative overflow-hidden shadow-2xl border border-rose-400/30">
+                <div class="relative w-full h-64 rounded-2xl overflow-hidden flex flex-col items-center justify-center p-6 bg-gradient-to-br from-rose-900 via-pink-900 to-purple-950 select-none">
+                    <!-- Скрытый текст под скретч-слоем -->
+                    <div class="text-center z-0">
+                        <div class="text-5xl mb-3 animate-bounce">💍💖✨</div>
+                        <h3 class="font-display text-xl sm:text-2xl font-bold text-white mb-2">
+                            Настя, ты — моя главная мечта!
+                        </h3>
+                        <p class="font-handwriting text-2xl sm:text-3xl text-rose-300">
+                            Я безумно сильно тебя люблю и хочу создать с тобой тысячи счастливых воспоминаний. Твой Миша ❤️
+                        </p>
+                    </div>
+
+                    <!-- Canvas для стирания -->
+                    <canvas id="scratchCanvas" class="absolute inset-0 w-full h-full cursor-crosshair z-10 touch-none"></canvas>
+                </div>
+                <div class="mt-3 flex justify-between items-center text-xs text-rose-300/70 px-2">
+                    <span>Сотри серебристый слой</span>
+                    <button onclick="initScratchCard()" class="hover:text-white underline">Восстановить слой</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. ИНТЕРАКТИВНЫЙ ТЕСТ НА СОВМЕСТИМОСТЬ -->
+        <section class="glass-card rounded-3xl p-8 md:p-12 text-center max-w-3xl mx-auto">
+            <span class="text-rose-400 text-xs font-bold uppercase tracking-widest">Научный факт</span>
+            <h2 class="font-display text-2xl sm:text-3xl font-bold mt-1 mb-6">Калькулятор идеальной пары 🧬</h2>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mb-8">
+                <div class="px-6 py-4 rounded-2xl bg-white/5 border border-rose-400/30 w-full sm:w-48">
+                    <span class="text-xs text-rose-300 block">Парень</span>
+                    <span class="font-display text-2xl font-bold text-white">Миша 👦🏻</span>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-rose-500/20 flex items-center justify-center text-rose-400 text-2xl font-bold shrink-0 animate-heartbeat">
+                    +
+                </div>
+                <div class="px-6 py-4 rounded-2xl bg-white/5 border border-rose-400/30 w-full sm:w-48">
+                    <span class="text-xs text-rose-300 block">Девушка</span>
+                    <span class="font-display text-2xl font-bold text-white">Настя 👩🏼</span>
+                </div>
+            </div>
+
+            <div id="calcResultArea" class="mb-6 hidden">
+                <div class="w-full bg-white/10 h-5 rounded-full overflow-hidden mb-3 p-0.5">
+                    <div id="calcProgressBar" class="bg-gradient-to-r from-rose-500 via-pink-400 to-rose-500 h-full rounded-full transition-all duration-1000 w-0"></div>
+                </div>
+                <p id="calcResultText" class="font-display text-xl sm:text-2xl font-bold text-rose-300"></p>
+            </div>
+
+            <button id="runCalcBtn" onclick="calculateCompatibility()" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-rose-500 text-white font-bold shadow-lg hover:scale-105 transition-transform">
+                Рассчитать совместимость
+            </button>
+        </section>
+
+        <!-- 8. ГЛАВНЫЙ ВОПРОС С УБЕГАЮЩЕЙ КНОПКОЙ "НЕТ" -->
+        <section class="glass-card rounded-3xl p-8 sm:p-14 text-center relative overflow-hidden border-2 border-rose-400/40">
+            <div id="questionBlock">
+                <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-rose-500/20 flex items-center justify-center text-4xl animate-bounce">
+                    🥺👉👈
+                </div>
+                <h2 class="font-display text-3xl sm:text-4xl font-bold mb-3">
+                    Настя, у Миши есть один очень важный вопрос...
+                </h2>
+                <p class="text-rose-200/80 text-lg mb-10">
+                    Будешь ли ты и дальше радовать меня своей улыбкой и пойдешь со мной на самое романтическое свидание?
+                </p>
+
+                <div class="flex flex-wrap items-center justify-center gap-6 min-h-[80px] relative" id="buttonsArena">
+                    <button id="yesBtn" onclick="acceptProposal()" class="px-10 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-display font-bold text-xl shadow-xl shadow-emerald-500/30 hover:scale-110 transition-all z-20">
+                        ДА, КОНЕЧНО! ❤️
+                    </button>
+
+                    <button id="noBtn" class="px-8 py-4 rounded-2xl bg-white/10 text-rose-200 font-display font-semibold text-lg border border-white/20 transition-all duration-200 z-20">
+                        Нет 🙈
+                    </button>
+                </div>
+            </div>
+
+            <!-- Блок после нажатия "ДА" -->
+            <div id="acceptedBlock" class="hidden py-6">
+                <div class="text-6xl mb-4 animate-heartbeat">🥳💖💑</div>
+                <h2 class="font-display text-3xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-300 via-pink-200 to-rose-400 mb-4">
+                    УРААА! Я знал, что ты скажешь ДА!
+                </h2>
+                <p class="font-handwriting text-3xl text-rose-200 max-w-xl mx-auto mb-6">
+                    Миша + Настя = Любовь навсегда! Беги обнимать своего парня (или напиши ему прямо сейчас, как сильно ты его любишь)!
+                </p>
+                <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-rose-500/20 border border-rose-400/40 text-rose-200 text-sm">
+                    <i class="ph-fill ph-check-circle text-emerald-400 text-lg"></i>
+                    <span>Официально лучшая пара в мире</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Подвал -->
+        <footer class="text-center pt-8 pb-4 text-rose-300/50 text-xs space-y-2">
+            <p class="font-display text-sm text-rose-300/80">Сделано с безграничной любовью специально для Насти ❤️</p>
+            <p>Автор идеи и твоего хорошего настроения: Миша</p>
+        </footer>
+
+    </main>
+
+    <!-- Модальное окно для уведомлений (вместо alert) -->
+    <div id="toastModal" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 translate-y-4 transition-all duration-300">
+        <div class="glass-card bg-rose-950/90 border border-rose-400 px-6 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 text-white">
+            <i class="ph-fill ph-heart text-rose-400 text-xl animate-heartbeat"></i>
+            <span id="toastText" class="text-sm font-medium"></span>
+        </div>
+    </div>
+
+    <script>
+        /* ==========================================
+           1. ДАННЫЕ ДЛЯ КАРТОЧЕК, ЗАПИСОК И КУПОНОВ
+        ========================================== */
+        const reasonsData = [
+            {
+                icon: "ph-sparkle",
+                title: "Твои глаза",
+                frontSub: "Причина №1",
+                backText: "В твоих глазах, Настя, можно утонуть. В них столько тепла и света, что я забываю обо всем на свете, когда смотрю на тебя."
+            },
+            {
+                icon: "ph-smiley-wink",
+                title: "Твоя улыбка и смех",
+                frontSub: "Причина №2",
+                backText: "Твой искренний смех — моя самая любимая мелодия. Когда ты улыбаешься, у меня внутри расцветает весна."
+            },
+            {
+                icon: "ph-heart-straight",
+                title: "Твоя нежность",
+                frontSub: "Причина №3",
+                backText: "Твои объятия и прикосновения лечат любую усталость. Рядом с тобой я чувствую себя самым нужным и счастливым."
+            },
+            {
+                icon: "ph-crown",
+                title: "Твоя уникальность",
+                frontSub: "Причина №4",
+                backText: "В этом мире миллиарды людей, но такая удивительная, чуткая, красивая и умная Настя — всего одна. И она моя!"
+            },
+            {
+                icon: "ph-sun-horizon",
+                title: "Наш уют",
+                frontSub: "Причина №5",
+                backText: "С тобой невероятно легко как гулять до утра, так и просто молчать в обнимку под пледом. Ты — мой дом и моё спокойствие."
+            },
+            {
+                icon: "ph-infinity",
+                title: "Вдохновение",
+                frontSub: "Причина №6",
+                backText: "Ради тебя мне хочется становиться лучше каждый день, покорять вершины и делать всё, чтобы ты гордилась своим Мишей."
+            }
+        ];
+
+        const jarNotes = [
+            "«Настя, ты выглядишь просто сногсшибательно в любой момент дня и ночи! 😍»",
+            "«Каждый раз, когда приходит сообщение от тебя, мое сердце бьется чуточку быстрее 💓»",
+            "«Ты — самое нежное и прекрасное чудо в моей жизни. Твой Миша ❤️»",
+            "«Я обожаю каждую твою черточку, каждую родинку и каждую твою привычку ✨»",
+            "«Спасибо, что делаешь меня самым счастливым парнем на этой планете! 🌍»",
+            "«Даже если мы не рядом прямо сейчас, знай — я думаю о тебе и крепко обнимаю мысленно 🤗»",
+            "«Настенька, ты заслуживаешь всех цветов мира и самых ярких звезд с неба 🌸»",
+            "«С тобой любое место становится особенным, а любой момент — незабываемым 💫»",
+            "«Моя любовь к тебе растет с каждой секундой всё сильнее и сильнее 📈❤️»",
+            "«Ты — моя муза, моя радость и моя самая большая удача в жизни! 🍀»"
+        ];
+
+        const couponsData = [
+            {
+                id: "c1",
+                icon: "💆🏼‍♀️",
+                title: "Расслабляющий массаж",
+                desc: "30 минут нежного массажа от Миши в любое время, когда ты устала."
+            },
+            {
+                id: "c2",
+                icon: "🍕🎬",
+                title: "Киновечер по правилам Насти",
+                desc: "Ты выбираешь любой фильм или сериал и любимые вкусняшки, а Миша всё организует."
+            },
+            {
+                id: "c3",
+                icon: "🍫☕",
+                title: "Завтрак или вкусняшка в постель",
+                desc: "Любимый десерт, кофе или чай с доставкой прямо в твои нежные ручки."
+            },
+            {
+                id: "c4",
+                icon: "🧞‍♂️✨",
+                title: "Одно любое желание",
+                desc: "Джокер-купон! Загадай любую капризульку, и Миша исполнит её без вопросов."
+            }
+        ];
+
+        /* ==========================================
+           2. ИНИЦИАЛИЗАЦИЯ КАРТОЧЕК И КУПОНОВ
+        ========================================== */
+        function renderReasons() {
+            const grid = document.getElementById('reasonsGrid');
+            grid.innerHTML = reasonsData.map((item, idx) => `
+                <div class="h-64 perspective-1000 cursor-pointer group" onclick="this.querySelector('.card-inner').classList.toggle('card-flipped')">
+                    <div class="card-inner relative w-full h-full transform-style-3d">
+                        <!-- Лицевая сторона -->
+                        <div class="absolute inset-0 glass-card rounded-3xl p-6 flex flex-col items-center justify-center text-center backface-hidden border border-rose-400/20 group-hover:border-rose-400/50 transition-colors">
+                            <span class="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-2">${item.frontSub}</span>
+                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500/20 to-pink-500/20 border border-rose-400/30 flex items-center justify-center mb-4 text-rose-300 group-hover:scale-110 transition-transform">
+                                <i class="ph-fill ${item.icon} text-3xl"></i>
+                            </div>
+                            <h3 class="font-display text-xl font-bold text-white mb-2">${item.title}</h3>
+                            <span class="text-xs text-rose-300/60 flex items-center gap-1 mt-auto">
+                                <i class="ph ph-hand-tap"></i> Нажми, чтобы открыть
+                            </span>
+                        </div>
+                        <!-- Обратная сторона -->
+                        <div class="absolute inset-0 rounded-3xl p-6 flex flex-col items-center justify-center text-center backface-hidden rotate-y-180 bg-gradient-to-br from-rose-600/90 to-purple-900/90 border border-rose-300/50 shadow-xl">
+                            <i class="ph-fill ph-quotes text-3xl text-rose-200/50 mb-2"></i>
+                            <p class="text-sm sm:text-base text-white font-medium leading-relaxed">${item.backText}</p>
+                            <span class="mt-auto text-xs text-rose-200 font-handwriting text-lg">Твой Миша ❤️</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderCoupons() {
+            const container = document.getElementById('couponsContainer');
+            container.innerHTML = couponsData.map(c => `
+                <div class="glass-card glass-card-hover rounded-2xl p-5 flex items-center justify-between gap-4 border-l-4 border-l-rose-500 relative overflow-hidden">
+                    <div class="flex items-start gap-4">
+                        <div class="text-3xl sm:text-4xl bg-white/5 p-3 rounded-2xl shrink-0">${c.icon}</div>
+                        <div>
+                            <h3 class="font-display font-bold text-lg text-white">${c.title}</h3>
+                            <p class="text-xs sm:text-sm text-rose-200/70 mt-1 leading-relaxed">${c.desc}</p>
+                        </div>
+                    </div>
+                    <button id="btn-${c.id}" onclick="redeemCoupon('${c.id}', '${c.title}')" class="shrink-0 px-4 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-rose-500/20">
+                        Выбрать
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function redeemCoupon(id, title) {
+            const btn = document.getElementById(`btn-${id}`);
+            btn.innerHTML = 'Активен ✅';
+            btn.className = 'shrink-0 px-4 py-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 text-xs font-bold uppercase tracking-wider';
+            confetti({ particleCount: 40, spread: 60, origin: { y: 0.8 } });
+            showToast(`Купон «${title}» активирован! Покажи это Мише ❤️`);
+        }
+
+        /* ==========================================
+           3. ЭФФЕКТ ПЕЧАТНОЙ МАШИНКИ И ПОЦЕЛУИ
+        ========================================== */
+        const phrases = [
+            "С 7 февраля 2026 года моя жизнь наполнилась настоящим счастьем...",
+            "Каждая секунда рядом с тобой — это маленькое волшебство...",
+            "Миша безумно сильно любит свою прекрасную Настю ❤️",
+            "Ты — причина моей самой искренней улыбки каждый день ✨",
+            "Спасибо, что делаешь этот мир ярче, добрее и теплее 🌸"
+        ];
+        let phraseIdx = 0;
+        let charIdx = 0;
+        let isDeleting = false;
+
+        function typeWriterEffect() {
+            const el = document.getElementById('typewriterText');
+            if (!el) return;
+            const currentPhrase = phrases[phraseIdx];
+
+            if (isDeleting) {
+                el.textContent = currentPhrase.substring(0, charIdx - 1);
+                charIdx--;
+            } else {
+                el.textContent = currentPhrase.substring(0, charIdx + 1);
+                charIdx++;
+            }
+
+            let speed = isDeleting ? 35 : 65;
+
+            if (!isDeleting && charIdx === currentPhrase.length) {
+                speed = 2400;
+                isDeleting = true;
+            } else if (isDeleting && charIdx === 0) {
+                isDeleting = false;
+                phraseIdx = (phraseIdx + 1) % phrases.length;
+                speed = 400;
+            }
+
+            setTimeout(typeWriterEffect, speed);
+        }
+
+        let kisses = 0;
+        document.getElementById('sendLoveBtn').addEventListener('click', (e) => {
+            kisses++;
+            document.getElementById('kissCount').textContent = kisses;
+            
+            // Салют из сердечек
+            confetti({
+                particleCount: 35,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#f43f5e', '#fb7185', '#fda4af', '#ffffff']
+            });
+
+            const sweetMsgs = [
+                "Миша отправил тебе нежный поцелуй в щечку! 💋",
+                "Ещё один крепкий поцелуй и обнимашки для Насти! 🥰",
+                "Миша шепчет: «Ты самая лучшая!» ❤️",
+                "Лови тысячу воздушных поцелуев! 💖✨"
+            ];
+            showToast(sweetMsgs[kisses % sweetMsgs.length]);
+        });
+
+        /* ==========================================
+           4. БАНОЧКА С КОМПЛИМЕНТАМИ И ПИСЬМО
+        ========================================== */
+        let lastNoteIdx = -1;
+        function drawNoteFromJar() {
+            const jar = document.getElementById('jarElement');
+            const display = document.getElementById('jarNoteDisplay');
+            const textEl = document.getElementById('jarNoteText');
+
+            jar.classList.add('scale-95', 'rotate-3');
+            setTimeout(() => jar.classList.remove('scale-95', 'rotate-3'), 200);
+
+            let randomIdx;
+            do {
+                randomIdx = Math.floor(Math.random() * jarNotes.length);
+            } while (randomIdx === lastNoteIdx);
+            lastNoteIdx = randomIdx;
+
+            display.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                textEl.textContent = jarNotes[randomIdx];
+                display.classList.remove('opacity-0', 'scale-95');
+            }, 200);
+        }
+
+        // Открытие конверта
+        document.getElementById('envelopeClosed').addEventListener('click', () => {
+            document.getElementById('envelopeClosed').classList.add('hidden');
+            const opened = document.getElementById('envelopeOpened');
+            opened.classList.remove('hidden');
+            confetti({ particleCount: 50, spread: 80, origin: { y: 0.6 } });
+        });
+
+        document.getElementById('closeLetterBtn').addEventListener('click', () => {
+            document.getElementById('envelopeOpened').classList.add('hidden');
+            document.getElementById('envelopeClosed').classList.remove('hidden');
+        });
+
+        /* ==========================================
+           5. СКРЕТЧ-КАРТА (CANVAS СТИРАНИЕ)
+        ========================================== */
+        function initScratchCard() {
+            const canvas = document.getElementById('scratchCanvas');
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+
+            // Рисуем красивый градиентный защитный слой
+            const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            grad.addColorStop(0, '#e11d48');
+            grad.addColorStop(0.5, '#db2777');
+            grad.addColorStop(1, '#7e22ce');
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Текст поверх защитного слоя
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 20px Comfortaa, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('✨ Потри меня пальцем или мышкой ✨', canvas.width / 2, canvas.height / 2 - 10);
+            ctx.font = '14px Montserrat, sans-serif';
+            ctx.fillStyle = '#fecdd3';
+            ctx.fillText('Секретное послание от Миши для Насти', canvas.width / 2, canvas.height / 2 + 20);
+
+            let isDrawing = false;
+
+            function scratch(x, y) {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(x, y, 28, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            canvas.onmousedown = () => isDrawing = true;
+            window.addEventListener('mouseup', () => isDrawing = false);
+            canvas.onmousemove = (e) => {
+                if (!isDrawing) return;
+                const b = canvas.getBoundingClientRect();
+                scratch(e.clientX - b.left, e.clientY - b.top);
+            };
+
+            canvas.ontouchstart = (e) => {
+                isDrawing = true;
+                const b = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                scratch(touch.clientX - b.left, touch.clientY - b.top);
+            };
+            canvas.ontouchend = () => isDrawing = false;
+            canvas.ontouchmove = (e) => {
+                if (!isDrawing) return;
+                e.preventDefault();
+                const b = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                scratch(touch.clientX - b.left, touch.clientY - b.top);
+            };
+        }
+
+        /* ==========================================
+           6. КАЛЬКУЛЯТОР СОВМЕСТИМОСТИ
+        ========================================== */
+        function calculateCompatibility() {
+            const area = document.getElementById('calcResultArea');
+            const bar = document.getElementById('calcProgressBar');
+            const text = document.getElementById('calcResultText');
+            const btn = document.getElementById('runCalcBtn');
+
+            area.classList.remove('hidden');
+            btn.disabled = true;
+            btn.textContent = 'Анализируем звезды и сердца...';
+            bar.style.width = '15%';
+            text.textContent = 'Проверка улыбки Насти... 100% очарования';
+
+            setTimeout(() => {
+                bar.style.width = '60%';
+                text.textContent = 'Измерение влюбленности Миши... Зашкаливает!';
+            }, 800);
+
+            setTimeout(() => {
+                bar.style.width = '100%';
+                text.innerHTML = 'Результат: <span class="text-rose-400 text-3xl">1 000 000%</span> — Идеальная пара! 💑✨';
+                btn.textContent = 'Совместимость подтверждена ❤️';
+                confetti({ particleCount: 60, spread: 90, origin: { y: 0.7 } });
+            }, 1800);
+        }
+
+        /* ==========================================
+           7. УБЕГАЮЩАЯ КНОПКА "НЕТ" И ФИНАЛ
+        ========================================== */
+        const noBtn = document.getElementById('noBtn');
+        const noPhrases = [
+            "Точно нет? 🥺",
+            "Подумай ещё! ❤️",
+            "А если куплю вкусняшку? 🍫",
+            "Кнопка сломалась 🙈",
+            "Никаких «Нет»! 😘",
+            "Жми на зеленую! 👉"
+        ];
+        let noCount = 0;
+
+        function moveNoButton() {
+            const arena = document.getElementById('buttonsArena');
+            const maxX = Math.max(80, arena.clientWidth - noBtn.offsetWidth - 20);
+            const maxY = 120;
+
+            const randomX = (Math.random() - 0.5) * maxX;
+            const randomY = (Math.random() - 0.5) * maxY;
+
+            noBtn.style.transform = `translate(${randomX}px, ${randomY}px)`;
+            noBtn.textContent = noPhrases[noCount % noPhrases.length];
+            noCount++;
+
+            // Увеличиваем кнопку ДА
+            const yesBtn = document.getElementById('yesBtn');
+            const scale = Math.min(1 + noCount * 0.08, 1.45);
+            yesBtn.style.transform = `scale(${scale})`;
+        }
+
+        noBtn.addEventListener('mouseenter', moveNoButton);
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveNoButton();
+        });
+        noBtn.addEventListener('click', moveNoButton);
+
+        function acceptProposal() {
+            document.getElementById('questionBlock').classList.add('hidden');
+            document.getElementById('acceptedBlock').classList.remove('hidden');
+
+            // Мощный праздничный салют
+            const duration = 3 * 1000;
+            const end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 6,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#f43f5e', '#fb7185', '#fbbf24']
+                });
+                confetti({
+                    particleCount: 6,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#f43f5e', '#fb7185', '#fbbf24']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+
+        /* ==========================================
+           8. НЕЖНАЯ МУЗЫКАЛЬНАЯ ШКАТУЛКА (TONE.JS)
+        ========================================== */
+        let isMusicPlaying = false;
+        let synth = null;
+        let musicLoop = null;
+
+        async function toggleMusic() {
+            await Tone.start();
+
+            if (!synth) {
+                synth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "sine" },
+                    envelope: { attack: 0.08, decay: 0.3, sustain: 0.4, release: 1.5 }
+                }).toDestination();
+                synth.volume.value = -12;
+
+                // Нежная романтическая мелодия (музыкальная шкатулка)
+                const melody = [
+                    { time: "0:0", note: ["C5", "E4"], dur: "4n" },
+                    { time: "0:1", note: ["G4"], dur: "4n" },
+                    { time: "0:2", note: ["E5", "C4"], dur: "4n" },
+                    { time: "0:3", note: ["D5"], dur: "4n" },
+                    { time: "1:0", note: ["C5", "A3"], dur: "2n" },
+                    { time: "1:2", note: ["A4", "F4"], dur: "4n" },
+                    { time: "1:3", note: ["B4"], dur: "4n" },
+                    { time: "2:0", note: ["C5", "F3"], dur: "2n" },
+                    { time: "2:2", note: ["G4", "D4"], dur: "4n" },
+                    { time: "2:3", note: ["E4"], dur: "4n" },
+                    { time: "3:0", note: ["G4", "G3"], dur: "2n." }
+                ];
+
+                musicLoop = new Tone.Part((time, val) => {
+                    synth.triggerAttackRelease(val.note, val.dur, time);
+                }, melody);
+                musicLoop.loop = true;
+                musicLoop.loopEnd = "4m";
+                Tone.Transport.bpm.value = 85;
+            }
+
+            const musicText = document.getElementById('musicText');
+            const musicIcon = document.getElementById('musicIcon');
+
+            if (isMusicPlaying) {
+                Tone.Transport.pause();
+                isMusicPlaying = false;
+                musicText.textContent = "Мелодия: Выкл";
+                musicIcon.classList.remove('animate-spin');
+            } else {
+                Tone.Transport.start();
+                musicLoop.start(0);
+                isMusicPlaying = true;
+                musicText.textContent = "Мелодия: Играет";
+                musicIcon.classList.add('animate-spin');
+            }
+        }
+
+        document.getElementById('musicToggleBtn').addEventListener('click', toggleMusic);
+
+        /* ==========================================
+           9. ОТКРЫТИЕ ПОДАРКА (СТАРТ САЙТА)
+        ========================================== */
+        document.getElementById('openGiftBtn').addEventListener('click', async () => {
+            const intro = document.getElementById('introScreen');
+            const main = document.getElementById('mainContent');
+
+            // Запускаем нежную музыку при клике
+            try {
+                await toggleMusic();
+            } catch (e) {
+                // Игнорируем, если аудио заблокировано
+            }
+
+            confetti({
+                particleCount: 80,
+                spread: 100,
+                origin: { y: 0.6 }
+            });
+
+            intro.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                intro.style.display = 'none';
+                main.classList.remove('opacity-0');
+                initScratchCard();
+            }, 700);
+        });
+
+        /* ==========================================
+           10. ФОНОВЫЙ CANVAS (ЗВЕЗДЫ И СЕРДЕЧКИ)
+        ========================================== */
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let particles = [];
+
+        function resizeBgCanvas() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+        }
+
+        function createParticles() {
+            particles = [];
+            const count = Math.min(60, Math.floor(window.innerWidth / 20));
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * bgCanvas.width,
+                    y: Math.random() * bgCanvas.height,
+                    size: Math.random() * 2.5 + 1,
+                    speedY: -(Math.random() * 0.4 + 0.1),
+                    speedX: (Math.random() - 0.5) * 0.3,
+                    opacity: Math.random() * 0.7 + 0.2,
+                    isHeart: Math.random() > 0.75
+                });
+            }
+        }
+
+        function animateBg() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+            particles.forEach(p => {
+                p.y += p.speedY;
+                p.x += p.speedX;
+
+                if (p.y < -10) p.y = bgCanvas.height + 10;
+                if (p.x < -10) p.x = bgCanvas.width + 10;
+                if (p.x > bgCanvas.width + 10) p.x = -10;
+
+                bgCtx.save();
+                bgCtx.globalAlpha = p.opacity;
+                if (p.isHeart) {
+                    bgCtx.font = `${p.size * 6}px sans-serif`;
+                    bgCtx.fillText('❤️', p.x, p.y);
+                } else {
+                    bgCtx.fillStyle = '#fda4af';
+                    bgCtx.beginPath();
+                    bgCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    bgCtx.fill();
+                }
+                bgCtx.restore();
+            });
+
+            requestAnimationFrame(animateBg);
+        }
+
+        /* ==========================================
+           11. УВЕДОМЛЕНИЯ И СЛЕД ОТ КУРСОРА
+        ========================================== */
+        let toastTimeout;
+        function showToast(message) {
+            const modal = document.getElementById('toastModal');
+            const text = document.getElementById('toastText');
+            text.textContent = message;
+            modal.classList.remove('opacity-0', 'translate-y-4');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                modal.classList.add('opacity-0', 'translate-y-4');
+            }, 3000);
+        }
+
+        // След из маленьких сердечек при движении мышки
+        let lastHeartTime = 0;
+        window.addEventListener('mousemove', (e) => {
+            const now = Date.now();
+            if (now - lastHeartTime < 120) return;
+            lastHeartTime = now;
+
+            const heart = document.createElement('div');
+            heart.className = 'cursor-heart text-xs select-none';
+            heart.textContent = Math.random() > 0.5 ? '💖' : '✨';
+            heart.style.left = `${e.clientX}px`;
+            heart.style.top = `${e.clientY}px`;
+            document.body.appendChild(heart);
+
+            setTimeout(() => heart.remove(), 1000);
+        });
+
+        /* ==========================================
+           12. ТАЙМЕР ОТНОШЕНИЙ (С 7 ФЕВРАЛЯ 2026)
+        ========================================== */
+        const relationshipStartDate = new Date(2026, 1, 7, 0, 0, 0); // 7 февраля 2026 (месяцы с 0)
+
+        function declOfNum(n, titles) {
+            return titles[(n % 10 === 1 && n % 100 !== 11) ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2];
+        }
+
+        function updateLoveTimer() {
+            const now = new Date();
+            const diff = Math.max(0, now - relationshipStartDate);
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((diff / 1000 / 60) % 60);
+            const seconds = Math.floor((diff / 1000) % 60);
+
+            document.getElementById('timerDays').textContent = days;
+            document.getElementById('timerHours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('timerMinutes').textContent = String(minutes).padStart(2, '0');
+            document.getElementById('timerSeconds').textContent = String(seconds).padStart(2, '0');
+
+            document.getElementById('labelDays').textContent = declOfNum(days, ['День', 'Дня', 'Дней']);
+            document.getElementById('labelHours').textContent = declOfNum(hours, ['Час', 'Часа', 'Часов']);
+            document.getElementById('labelMinutes').textContent = declOfNum(minutes, ['Минута', 'Минуты', 'Минут']);
+            document.getElementById('labelSeconds').textContent = declOfNum(seconds, ['Секунда', 'Секунды', 'Секунд']);
+        }
+
+        window.onload = function() {
+            renderReasons();
+            renderCoupons();
+            typeWriterEffect();
+            updateLoveTimer();
+            setInterval(updateLoveTimer, 1000);
+            resizeBgCanvas();
+            createParticles();
+            animateBg();
+            window.addEventListener('resize', () => {
+                resizeBgCanvas();
+                initScratchCard();
+            });
+        };
+    </script>
+</body>
+</html>
